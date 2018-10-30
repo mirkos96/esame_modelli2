@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>iPersonal</title>
+
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <!-- build:css  vendor/dist/vendor.min.css<%= pkg.version %>-->
+    <link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="vendor/metisMenu/dist/metisMenu.min.css" rel="stylesheet" type="text/css">
+    <link href="vendor/dist/css/sb-admin-2.css" rel="stylesheet" type="text/css">
+    <link href="vendor/chosen/dist/chosen.min.css" rel="stylesheet" type="text/css">
+    <link href="vendor/datepicker/dist/datepicker.min.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="vendor/rte/dist/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="vendor/rte/dist/prettify.css" type="text/css">
+    <!-- /build -->
+
+    <!-- build:css custom/dist/custom.min.css<%= pkg.version %>-->
+    <link href="custom/css/index.css" rel="stylesheet" type="text/css"/>
+    <!-- /build -->
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div id="wrapper">
+    <script type="text/template" id="username-template">
+        <span> <%= username %></span>
+    </script>
+    <script type="text/template" id="side-menu-template">
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav">
+                    <li><a href="#" data-entity="bookmark">Bookmarks (<%= bookmarks %>)
+                        <img id="bookmark-add-icon" class="add-entity-icon" data-entity="bookmark"
+                             src="custom/images/plus.png" title="Add a bookmark"/></a>
+                    </li>
+                    <li><a href="#" data-entity="note">Notes (<%= notes %>)
+                        <img id="note-add-icon" class="add-entity-icon" data-entity="note"
+                             src="custom/images/plus.png" title="Add a note"/></a>
+                    </li>
+                    <li><a href="#" data-entity="pin">Pins (<%= pins %>)
+                        <img id="pin-add-icon" class="add-entity-icon" data-entity="pin"
+                             src="custom/images/plus.png" title="Add a pin"/></a>
+                    </li>
+                    <li>
+                        <a href="#" data-entity="todo">Todos (<%= todos %>)
+                            <img id="todo-add-icon" class="add-entity-icon" data-entity="todo"
+                                 src="custom/images/plus.png" title="Add a todo"/></a>
+                    </li>
+                    <li>
+                        <a href="#" data-entity="diary">Diaries (<%= diaries %>)
+                            <img id="diary-add-icon" class="add-entity-icon" data-entity="diary"
+                                 src="custom/images/plus.png" title="Add a diary"/></a>
+                    </li>
+                    <li>
+                        <a href="#" data-entity="expense">Expenses (<%= expenses %>)
+                            <img id="expense-add-icon" class="add-entity-icon" data-entity="expense"
+                                 src="custom/images/plus.png" title="Add a expense"/></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="bookmark-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/bookmark.png"/>
+                    <i>Bookmark</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="bookmark-form" action="#">
+                    <% if (typeof id !== "undefined") { %>
+                    <span class="entityId invisible"><%= id %></span>
+                    <% } else { %>
+                    <span class="entityId invisible"></span>
+                    <% } %>
+                    <div class="form-group">
+                        <input class="form-control" name="name" placeholder="Title" value="<%= name %>"/>
+                        <span class="name-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" name="url" placeholder="URL" value="<%= url %>"/>
+                        <span class="url-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="description" rows="7"
+                                  placeholder="Description goes here"><%= description %></textarea>
+                        <span class="description-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <img id="book-tag-img" class="clickable" title="Add Tags"
+                             src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="bookmark-tag" multiple="multiple" class="form-control chosen-menu"
+                                data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                            <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="book-submit" type="submit" class="btn btn-success btn-element">
+                            Submit
+                        </button>
+                        <button id="book-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="note-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/note.png"/>
+                    <i>Note</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="note-form" action="#">
+                    <% if (typeof id !== "undefined") { %>
+                    <span class="entityId invisible"><%= id %></span>
+                    <% } else { %>
+                    <span class="entityId invisible"></span>
+                    <% } %>
+                    <div class="form-group">
+                        <input class="form-control" name="title" placeholder="Title" value="<%= title %>"/>
+                        <span class="title-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <div class="btn-toolbar" data-role="editor-toolbar" data-target="#note">
+                            <div class="btn-group">
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font"><i
+                                        class="icon-font"></i><b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-edit="fontName Serif" style="font-family:'Serif'">Serif</a></li>
+                                    <li><a data-edit="fontName Sans" style="font-family:'Sans'">Sans</a></li>
+                                    <li><a data-edit="fontName Arial" style="font-family:'Arial'">Arial</a></li>
+                                    <li><a data-edit="fontName Arial Black" style="font-family:'Arial Black'">Arial
+                                        Black</a></li>
+                                    <li><a data-edit="fontName Courier" style="font-family:'Courier'">Courier</a></li>
+                                    <li><a data-edit="fontName Courier" style="font-family:'Courier'">Courier</a></li>
+                                    <li><a data-edit="fontName Courier New" style="font-family:'Courier New'">Courier
+                                        New</a></li>
+                                    <li><a data-edit="fontName Comic Sans MS" style="font-family:'Comic Sans MS'">Comic
+                                        Sans MS</a></li>
+                                    <li><a data-edit="fontName Helvetica" style="font-family:'Helvetica'">Helvetica</a>
+                                    </li>
+                                    <li><a data-edit="fontName Impact" style="font-family:'Impact'">Impact</a></li>
+                                    <li><a data-edit="fontName Lucida Grande" style="font-family:'Lucida Grande'">Lucida
+                                        Grande</a></li>
+                                    <li><a data-edit="fontName Lucida Sans" style="font-family:'Lucida Sans'">Lucida
+                                        Sans</a></li>
+                                    <li><a data-edit="fontName Tahoma" style="font-family:'Tahoma'">Tahoma</a></li>
+                                    <li><a data-edit="fontName Times" style="font-family:'Times'">Times</a></li>
+                                    <li><a data-edit="fontName Times New Roman" style="font-family:'Times New Roman'">Times
+                                        New Roman</a></li>
+                                    <li><a data-edit="fontName Verdana" style="font-family:'Verdana'">Verdana</a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font Size"><i
+                                        class="icon-text-height"></i>&nbsp;<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-edit="fontSize 5"><font size="5">Huge</font></a></li>
+                                    <li><a data-edit="fontSize 3"><font size="3">Normal</font></a></li>
+                                    <li><a data-edit="fontSize 1"><font size="1">Small</font></a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn bold" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>
+                                <a class="btn italic" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i
+                                        class="icon-italic"></i></a>
+                                <a class="btn underline" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i
+                                        class="icon-underline"></i></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn" data-edit="insertunorderedlist" title="Bullet list"><i
+                                        class="icon-list-ul"></i></a>
+                                <a class="btn" data-edit="insertorderedlist" title="Number list"><i
+                                        class="icon-list-ol"></i></a>
+                                <a class="btn" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i
+                                        class="icon-indent-left"></i></a>
+                                <a class="btn" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i
+                                        class="icon-align-left"></i></a>
+                                <a class="btn" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i
+                                        class="icon-align-center"></i></a>
+                                <a class="btn" data-edit="justifyright" title="Align Right (Ctrl/Cmd+R)"><i
+                                        class="icon-align-right"></i></a>
+                                <a class="btn" data-edit="justifyfull" title="Justify (Ctrl/Cmd+J)"><i
+                                        class="icon-align-justify"></i></a>
+                            </div>
+                        </div>
+                        <div id="note" class="form-control rte" name="note">
+                            <%= note %>
+                        </div>
+                        <span class="note-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <img id="note-tag-img" class="clickable" title="Add Tags"
+                             src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="note-tag" multiple="multiple" class="form-control chosen-menu"
+                                data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                            <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="note-submit" type="submit" class="btn btn-success btn-element">
+                            Submit
+                        </button>
+                        <button id="note-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="pin-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/pin.png"/>
+                    <i>Pin</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="pin-form" action="#">
+                    <% if (typeof id !== "undefined") { %>
+                    <span class="entityId invisible"><%= id %></span>
+                    <% } else { %>
+                    <span class="entityId invisible"></span>
+                    <% } %>
+                    <div class="form-group">
+                        <input class="form-control" name="name" placeholder="Title" value="<%= name %>"/>
+                        <span class="name-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" name="imageUrl" placeholder="Image URL" value="<%= imageUrl %>"/>
+                        <span class="imageUrl-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="description" rows="7"
+                                  placeholder="Description goes here"><%= description %></textarea>
+                        <span class="description-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <img id="pin-tag-img" class="clickable" title="Add Tags"
+                             src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="pin-tag" multiple="multiple" class="form-control chosen-menu"
+                                data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                            <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="pin-submit" type="submit" class="btn btn-success btn-element">
+                            Submit
+                        </button>
+                        <button id="pin-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="todo-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/todo.png"/>
+                    <i>Todo</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="alert alert-danger alert-dismissable invisible task-length-limit">
+                    <button class="close" type="button" data-dismiss="alert" aria-hidden="true">x</button>
+                    Task length cannot exceed 10
+                </div>
+                <form method="POST" id="todo-form" action="#">
+                    <% if (typeof id !== "undefined") { %>
+                    <span class="entityId invisible"><%= id %></span>
+                    <% } else { %>
+                    <span class="entityId invisible"></span>
+                    <% } %>
+                    <div class="form-group">
+                        <input class="form-control" name="title" placeholder="Title" value="<%= title %>"/>
+                        <span class="title-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <img id="todo-tag-img" class="clickable" title="Add Tags" src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="todo-tag" multiple="multiple" class="form-control chosen-menu"
+                            data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                                <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <img class="add-task" src="custom/images/plus.png" title="Add a task"/>
+                    </div>
+                    <div id="task-form" class="panel panel-default entity-form invisible">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                <img src="custom/images/task.png"/>
+                                <i>Task</i>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            <% if (typeof taskId !== "undefined") { %>
+                                <span class="invisible taskId"><%= taskId %></span>
+                            <% } else { %>
+                                <span class="invisible taskId"></span>
+                            <% } %>
+                            <div class="form-group">
+                                <input class="form-control" name="name" placeholder="name"/>
+                                <span class="name-error error-msg"></span>
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" name="task" rows="3" placeholder="task goes here"></textarea>
+                                <span class="task-error error-msg"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>Priority :</label>
+                                <label class="radio-inline">
+                                    <input id="high" type="radio" name="priority" value="HIGH"/>High
+                                </label>
+                                <label class="radio-inline">
+                                    <input id="medium" type="radio" name="priority" value="MEDIUM" checked="checked"/>Medium
+                                </label>
+                                <label class="radio-inline">
+                                    <input id="low" type="radio" name="priority" value="LOW"/>Low
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="percent-completion-label">Percent Completion: 0%</label>
+                                <input type="range" name="percent-completion" class="percent-completion" min="0" max="100" value="0"/>
+                            </div>
+                            <div class="button-group">
+                                <button id="task-add-button" type="submit" class="btn btn-success btn-element">
+                                    Add
+                                </button>
+                                <button id="task-cancel-button" type="submit" class="btn btn-link btn-element">Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="tasks" class="form-group tasks">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="task-display-template">
+        <% _.each(tasks, function(task){ %>
+            <div class="task-entity <%= task.priority.toLowerCase() %>">
+                <span class="invisible id"><%= task.id %></span>
+                <div class="panel-heading">
+                <b>
+                    <span class="name"><%= task.name %></span>
+                    ( <span class="percentCompletion"><%= task.percentCompletion %></span> % Completed )
+                    <a href="#" class="delete actionable clickable">Delete</a>
+                    <a href="#" class="edit actionable clickable">Edit</a>
+                </b>
+                </div>
+                <span class="priority invisible"><%= task.priority %></span>
+                <div class="panel-body task">
+                <%= task.task %>
+                </div>
+            </div>
+        <% }); %>
+        <% if (tasks.length > 0){ %>
+            <div class="button-group">
+                <button id="todo-submit" type="submit" class="btn btn-success btn-element">
+                    Submit
+                </button>
+                <button id="todo-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                </button>
+            </div>
+        <% } %>
+    </script>
+    <script type="text/template" id="diary-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/diary.png"/>
+                    <i>Diary</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="diary-form" action="#">
+                    <div class="form-group">
+                        <% if (typeof id !== "undefined") { %>
+                        <span class="entityId invisible"><%= id %></span>
+                        <% } else { %>
+                        <span class="entityId invisible"></span>
+                        <% } %>
+                        <input class="form-control" name="title" placeholder="Title" value="<%= title %>"/>
+                        <span class="title-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control datepicker" name="date"
+                               placeholder="Select a date" value="<%= dateStr %>"/>
+                        <span class="date-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <div class="btn-toolbar" data-role="editor-toolbar" data-target="#diary">
+                            <div class="btn-group">
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font"><i
+                                        class="icon-font"></i><b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-edit="fontName Serif" style="font-family:'Serif'">Serif</a></li>
+                                    <li><a data-edit="fontName Sans" style="font-family:'Sans'">Sans</a></li>
+                                    <li><a data-edit="fontName Arial" style="font-family:'Arial'">Arial</a></li>
+                                    <li><a data-edit="fontName Arial Black" style="font-family:'Arial Black'">Arial
+                                        Black</a></li>
+                                    <li><a data-edit="fontName Courier" style="font-family:'Courier'">Courier</a></li>
+                                    <li><a data-edit="fontName Courier" style="font-family:'Courier'">Courier</a></li>
+                                    <li><a data-edit="fontName Courier New" style="font-family:'Courier New'">Courier
+                                        New</a></li>
+                                    <li><a data-edit="fontName Comic Sans MS" style="font-family:'Comic Sans MS'">Comic
+                                        Sans MS</a></li>
+                                    <li><a data-edit="fontName Helvetica" style="font-family:'Helvetica'">Helvetica</a>
+                                    </li>
+                                    <li><a data-edit="fontName Impact" style="font-family:'Impact'">Impact</a></li>
+                                    <li><a data-edit="fontName Lucida Grande" style="font-family:'Lucida Grande'">Lucida
+                                        Grande</a></li>
+                                    <li><a data-edit="fontName Lucida Sans" style="font-family:'Lucida Sans'">Lucida
+                                        Sans</a></li>
+                                    <li><a data-edit="fontName Tahoma" style="font-family:'Tahoma'">Tahoma</a></li>
+                                    <li><a data-edit="fontName Times" style="font-family:'Times'">Times</a></li>
+                                    <li><a data-edit="fontName Times New Roman" style="font-family:'Times New Roman'">Times
+                                        New Roman</a></li>
+                                    <li><a data-edit="fontName Verdana" style="font-family:'Verdana'">Verdana</a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" title="Font Size"><i
+                                        class="icon-text-height"></i>&nbsp;<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-edit="fontSize 5"><font size="5">Huge</font></a></li>
+                                    <li><a data-edit="fontSize 3"><font size="3">Normal</font></a></li>
+                                    <li><a data-edit="fontSize 1"><font size="1">Small</font></a></li>
+                                </ul>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn bold" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>
+                                <a class="btn italic" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i
+                                        class="icon-italic"></i></a>
+                                <a class="btn underline" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i
+                                        class="icon-underline"></i></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn" data-edit="insertunorderedlist" title="Bullet list"><i
+                                        class="icon-list-ul"></i></a>
+                                <a class="btn" data-edit="insertorderedlist" title="Number list"><i
+                                        class="icon-list-ol"></i></a>
+                                <a class="btn" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i
+                                        class="icon-indent-left"></i></a>
+                                <a class="btn" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="btn" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i
+                                        class="icon-align-left"></i></a>
+                                <a class="btn" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i
+                                        class="icon-align-center"></i></a>
+                                <a class="btn" data-edit="justifyright" title="Align Right (Ctrl/Cmd+R)"><i
+                                        class="icon-align-right"></i></a>
+                                <a class="btn" data-edit="justifyfull" title="Justify (Ctrl/Cmd+J)"><i
+                                        class="icon-align-justify"></i></a>
+                            </div>
+                        </div>
+                        <div id="diary" class="form-control rte" name="content">
+                            <%= content %>
+                        </div>
+                        <span class="content-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <img id="diary-tag-img" class="clickable" title="Add Tags"
+                             src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="diary-tag" multiple="multiple" class="form-control chosen-menu"
+                                data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                            <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="diary-submit" type="submit" class="btn btn-success btn-element">
+                            Submit
+                        </button>
+                        <button id="diary-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="expense-upsert-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/expense.png"/>
+                    <i>Expense</i>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="expense-form" action="#">
+                    <% if (typeof id !== "undefined") { %>
+                    <span class="entityId invisible"><%= id %></span>
+                    <% } else { %>
+                    <span class="entityId invisible"></span>
+                    <% } %>
+                    <div class="form-group">
+                        <input class="form-control" name="title" placeholder="Title" value="<%= title %>"/>
+                        <span class="title-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="description" rows="5"
+                                  placeholder="Description goes here"><%= description %></textarea>
+                        <span class="description-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" name="amount" placeholder="Amount(in Rs)" value="<%= amount %>"/>
+                        <span class="amount-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <% if (date) { %>
+                        <input class="form-control datepicker" name="date"
+                               value="<%= moment.utc(date, 'X').format('YYYY-MM-DD') %>"
+                               placeholder="Select a date"/>
+                        <% } else { %>
+                        <input class="form-control datepicker" name="date" placeholder="Select a date"/>
+                        <% } %>
+                        <span class="date-error error-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <select id="expense-category" multiple="multiple" name="categories"
+                                class="form-control chosen-menu"
+                                data-placeholder="search categories">
+                            <% _.each(categories, function(category){ %>
+                            <option value="<%= category %>" selected="selected"><%= category %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <img id="exp-tag-img" class="clickable" title="Add Tags"
+                             src="custom/images/tag.png"/>
+                    </div>
+                    <div class="form-group invisible">
+                        <select id="expense-tag" multiple="multiple" class="form-control chosen-menu"
+                                data-placeholder="search tags">
+                            <% _.each(tags, function(tag){ %>
+                            <option value="<%= tag %>" selected="selected"><%= tag %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="exp-submit" type="submit" class="btn btn-success btn-element">
+                            Submit
+                        </button>
+                        <button id="exp-cancel" type="submit" class="btn btn-link btn-element">Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="entity-list-template">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Menu
+            </div>
+            <div class="panel-body entity-menu-list">
+                <ul class="chat">
+
+                    <% if (_.isEmpty(entities)) { %>
+                    <span><i>No data</i></span>
+                    <% } %>
+                    <% _.each(entities, function(entity){ %>
+                    <li class="left clearfix clickable" data-id='<%= entity.entityId %>'
+                        data-entity='<%=  entity.entityType %>'>
+                        <span class="chat-img pull-left">
+                            <img src="custom/images/<%= entity.entityType %>.png" alt="User Avatar" class="img-circle"/>
+                        </span>
+
+                        <div class="chat-body clearfix">
+                            <div class="header">
+                                <strong class="primary-font">
+                                    <%= entity.entityTitle %>
+                                    <% if (entity.entityType == 'pin'){ %>
+                                    <img src="<%= entity.url %>" height="20" width="20"/>
+                                    <% } %>
+                                </strong>
+                                <% if (entity.entityType == 'expense'){ %>
+                                <span>- Rs <%= entity.amount %></span>
+                                <% } %>
+
+                                <small class="pull-right text-muted">
+                                    <i class="fa fa-clock-o fa-fw"></i> <%=
+                                    moment.unix(entity.modifiedAt/1000).fromNow() %>
+                                </small>
+                            </div>
+                            <p>
+
+                            <div>
+                                <% if (entity.entityType == 'bookmark'){ %>
+                                <a href="<%= entity.url %>" target="_blank">Link</a>
+                                <% } %>
+                            </div>
+                            <%= entity.entitySummary %>
+                            </p>
+                        </div>
+                    </li>
+                    <% }); %>
+                    <% if (count > entities.length) { %>
+                        <div><a class="more" href="#" data-entity="<%= entities[0]['entityType'] %>">More...</a></div>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="bookmark-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                        <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png"
+                             title="Edit the bookmark"/>
+                        <img class="actionable clickable delete" data-id="<%= id %>" src="custom/images/delete.png"
+                             title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= name %>
+                    </h4>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><a href="<%= url %>"><%= url %></a></p>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><%= description %></p>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+            </div>
+    </script>
+    <script type="text/template" id="note-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                        <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png"
+                             title="Edit the note"/>
+                        <img class="actionable clickable delete" data-id="<%= id %>" src="custom/images/delete.png"
+                             title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= title %>
+                    </h4>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><%= note %></p>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+            </div>
+    </script>
+    <script type="text/template" id="pin-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                        <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png"
+                             title="Edit the Pin"/>
+                        <img class="actionable clickable delete" data-id="<%= id %>" src="custom/images/delete.png"
+                             title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= name %>
+                    </h4>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><img class="medium" src="<%= imageUrl %>"/></p>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><%= description %></p>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+            </div>
+    </script>
+    <script type="text/template" id="todo-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                    <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png" title="Edit the todo"/>
+                    <img class="actionable clickable delete" data-id="<%= id %>" src="custom/images/delete.png" title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= title %>
+                    </h4>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+                <div class="timeline-body">
+                    <div class="form-group tasks">
+                        <% if (tasks instanceof Array) { %>
+                            <% _.each(tasks, function(task){ %>
+                                <div class="task-entity <%= task.priority.toLowerCase() %>">
+                                    <span class="invisible id"><%= task.id %></span>
+                                    <div class="panel-heading normal">
+                                        <b>
+                                            <span class="name"><%= task.name %></span>
+                                            ( <span class="percentCompletion"><%= task.percentCompletion %></span> % Completed )
+                                        </b>
+                                    </div>
+                                    <span class="priority invisible"><%= task.priority %></span>
+                                    <div class="panel-body task normal">
+                                        <%= task.task %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="task-entity <%= tasks.priority.toLowerCase() %>">
+                                <span class="invisible id"><%= tasks.id %></span>
+                                <div class="panel-heading normal">
+                                    <b>
+                                        <span class="name"><%= tasks.name %></span>
+                                        ( <span class="percentCompletion"><%= tasks.percentCompletion %></span> % Completed )
+                                    </b>
+                                </div>
+                                <span class="priority invisible"><%= tasks.priority %></span>
+                                <div class="panel-body task normal">
+                                    <%= tasks.task %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/template" id="diary-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                        <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png"
+                             title="Edit the Page in diary"/>
+                        <img class="actionable clickable delete" data-id="<%= id %>" data-year="<%= year %>"
+                             src="custom/images/delete.png" title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= title %>
+                    </h4>
+                    <h5 class="timeline-title">
+                        <%= dateStr %>
+                    </h5>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><%= content %></p>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+            </div>
+    </script>
+
+    <script type="text/template" id="expense-display-template">
+        <div class="panel panel-default entity-form">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <img src="custom/images/<%= entityType %>.png"/>
+                    <i><%= entityType.charAt(0).toUpperCase() + entityType.slice(1) %>
+                        <img class="actionable clickable edit" data-id="<%= id %>" src="custom/images/edit.png"
+                             title="Edit the Expense"/>
+                        <img class="actionable clickable delete" data-id="<%= id %>" src="custom/images/delete.png"
+                             title="Confirm delete"/>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="timeline-heading">
+                    <h4 class="timeline-title">
+                        <%= title %>
+                    </h4>
+                    <small class="text-muted">
+                        <i class="fa fa-clock-o"></i> Modified <%= moment.unix(modifiedAt/1000).fromNow() %>
+                    </small>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p>Spent Rs <%= amount %> on <%= moment.utc(date, 'X').format('YYYY-MM-DD') %></p>
+                </div>
+                <div class="timeline-body">
+                    <p></p>
+
+                    <p><%= description %></p>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof categories !== 'undefined' && categories.length > 0 ) { %>
+                    Categories:
+                    <% if (categories instanceof Array) { %>
+                    <% _.each(categories, function(category) { %>
+                    <span class="tag"><%= category %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= categories %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+                <div class="timeline-body">
+                    <% if (typeof tags !== 'undefined' && tags.length > 0 ) { %>
+                    Tags:
+                    <% if (tags instanceof Array) { %>
+                    <% _.each(tags, function(tag) { %>
+                    <span class="tag"><%= tag %></span>
+                    <% }); %>
+                    <% } else { %>
+                    <span class="tag"><%= tags %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+            </div>
+    </script>
+
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">iPersonal</a>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li>
+            <button class="btn btn-link" data-toggle="modal" data-target="#advanced-search">
+                Advanced Search
+            </button>
+            </li>
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <span class="username"></span>
+                    <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user">
+                    <li><a href="/iPersonal/logout"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <div id="side-menu"></div>
+    </nav>
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+            </div>
+        </div>
+        <div class="row">
+
+            <div id="search-wrapper">
+                <div class="modal fade" id="advanced-search" tabindex="-1" role="dialog" aria-labelledby="advanced-search-label" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="advanced-search-label">Advanced Search</h4>
+                            </div>
+                            <div class="modal-body panel-body">
+                                <ul class="nav nav-tabs">
+                                    <li class="active general" data-type="general">
+                                        <a href="#general" data-toggle="tab">General</a>
+                                    </li>
+                                    <li class="expense" data-type="expense">
+                                        <a href="#expense" data-toggle="tab">Expense</a>
+                                    </li>
+                                </ul>
+                                <div class="content">
+                                    <div class="tab-pane fade in active" id="general">
+                                        <form id="general-search-form" method="POST" action = "#">
+                                            <div class="general-search-wrapper">
+                                                <div class="form-group">
+                                                    <label for="search-entity">Entities: </label>
+                                                    <select id="search-entity" multiple="multiple" class="form-control chosen-menu"
+                                                        data-placeholder="select entities">
+                                                        <option value="BOOKMARK">Bookmark</option>
+                                                        <option value="NOTE">Note</option>
+                                                        <option value="PIN">Pin</option>
+                                                        <option value="TODO">Todo</option>
+                                                        <option value="DIARY">Diary</option>
+                                                        <option value="EXPENSE">Expense</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="search-tag">Tags: </label>
+                                                    <select id="search-tag" multiple="multiple" class="form-control chosen-menu"
+                                                        data-placeholder="add tags">
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="search-title">Title: </label>
+                                                    <select id="search-title" multiple="multiple" class="form-control chosen-menu"
+                                                        data-placeholder="add title">
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="search-keyword">Keywords: </label>
+                                                    <select id="search-keyword" multiple="multiple" class="form-control chosen-menu"
+                                                        data-placeholder="add keywords">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="tab-pane fade invisible" id="expense">
+                                        <div class="expense-search-wrapper">
+                                            <form id="expense-search-form" method="POST" action = "#">
+                                                <div class="form-group">
+                                                    <label for="search-keyword">Categories: </label>
+                                                    <select id="search-category" multiple="multiple" class="form-control chosen-menu" data-placeholder="add categories">
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Date:</label>
+                                                </div>
+                                                <div class="input-group">
+                                                    <input class="form-control datepicker" name="start-date" placeholder="Start Date"/>
+                                                    <span class="input-group-addon">To</span>
+                                                    <input class="form-control datepicker" name="end-date" placeholder="End Date"/>
+                                                </div>
+                                                <div class="form-group">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Amount: </label>
+                                                </div>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="start-amount" placeholder="Start"/>
+                                                    <span class="input-group-addon">To</span>
+                                                    <input type="text" class="form-control" placeholder="End" name="end-amount"/>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button id="search" type="button" class="btn btn-primary"> Filter </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div id="list-wrapper"></div>
+            </div>
+            <div class="col-lg-7">
+                <div id="entity-wrapper" class="root-wrapper">
+                    <div id="bookmark-wrapper" class="invisible"></div>
+                    <div id="note-wrapper" class="invisible"></div>
+                    <div id="pin-wrapper" class="invisible"></div>
+                    <div id="todo-wrapper" class="invisible"></div>
+                    <div id="diary-wrapper" class="invisible"></div>
+                    <div id="expense-wrapper" class="invisible"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- build:js  vendor/dist/vendor.min.js<%= pkg.version %>-->
+<script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="vendor/metisMenu/dist/metisMenu.min.js"></script>
+<script src="vendor/dist/js/sb-admin-2.js"></script>
+<script type="text/javascript" src="vendor/underscore/dist/underscore.js"></script>
+<script type="text/javascript" src="vendor/backbone/dist/backbone.js"></script>
+<script type="text/javascript" src="vendor/chosen/dist/chosen.js"></script>
+<script type="text/javascript" src="vendor/datepicker/dist/datepicker.js"></script>
+<script type="text/javascript" src="vendor/rte/dist/jquery.hotkeys.js"></script>
+<script type="text/javascript" src="vendor/rte/dist/prettify.js"></script>
+<script type="text/javascript" src="vendor/rte/dist/bootstrap-wysiwyg.js"></script>
+<script type="text/javascript" src="vendor/moment/dist/moment.min.js"></script>
+<script type="text/javascript" src="vendor/confirm/dist/bootstrap-tooltip.js"></script>
+<script type="text/javascript" src="vendor/confirm/dist/bootstrap-confirmation.js"></script>
+<!-- /build -->
+
+<!-- build:js  custom/dist/custom.min.js<%= pkg.version %>-->
+<script type="text/javascript" src="custom/js/tag.js"></script>
+<script type="text/javascript" src="custom/js/expense_category.js"></script>
+<script type="text/javascript" src="custom/js/init.js"></script>
+<script type="text/javascript" src="custom/js/user.js"></script>
+<script type="text/javascript" src="custom/js/base.js"></script>
+<script type="text/javascript" src="custom/js/bookmark.js"></script>
+<script type="text/javascript" src="custom/js/note.js"></script>
+<script type="text/javascript" src="custom/js/pin.js"></script>
+<script type="text/javascript" src="custom/js/todo.js"></script>
+<script type="text/javascript" src="custom/js/diary.js"></script>
+<script type="text/javascript" src="custom/js/expense.js"></script>
+<script type="text/javascript" src="custom/js/entity.js"></script>
+<script type="text/javascript" src="custom/js/entity_list.js"></script>
+<script type="text/javascript" src="custom/js/search.js"></script>
+<!-- /build -->
+</body>
+</html>
